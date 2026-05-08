@@ -1,0 +1,38 @@
+{
+  "name": "@grully/i18n",
+  "module": "dist/index.js",
+  "version": "1.0.0",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist/**/*"
+  ],
+  "keywords": [
+    "grully",
+    "grammy",
+    "telegram-bot",
+    "i18n"
+  ],
+  "description": "Modular i18n plugin for grammy",
+  "devDependencies": {
+    "@types/bun": "^1.3.11",
+    "@types/node": "^25.6.2",
+    "@types/pug": "^2.0.10",
+    "bun-dts": "^0.1.70"
+  },
+  "peerDependencies": {
+    "grammy": "^1.42.0"
+  },
+  "scripts": {
+    "dev": "bun run --watch src/dev/index.ts",
+    "build": "bun run src/lib/build.ts",
+    "prepublish": "bun run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rul991/grully-i18n.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

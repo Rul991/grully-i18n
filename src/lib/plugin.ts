@@ -25,6 +25,7 @@ export const i18n = <C extends GrullyI18nContext>(
     const compileOptions: Omit<GrullyI18nCompileOptions, 'path'> = {
         isDebug,
         needCache,
+        rootFolder: folder
     }
 
     if (needCache) {

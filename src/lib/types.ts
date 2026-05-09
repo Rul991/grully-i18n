@@ -9,7 +9,11 @@ export type GrullyI18nCompileOptions = {
     /**
      * Absolute path to the translation file
      */
-    path: string,
+    path: string
+    /**
+     * Absolute path to root folder
+     */
+    rootFolder: string
     isDebug: boolean
     needCache: boolean
 }

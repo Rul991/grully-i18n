@@ -1,7 +1,9 @@
 import type { MiddlewareFn } from "grammy"
-import type { GrullyI18nCompileOptions, GrullyI18nContext, GrullyI18nLocalesDict, GrullyI18nOptions, GrullyI18nSessionData, GrullyI18nVars, GrullyMiddleware } from "./types"
+import type { GrullyI18nContext, GrullyI18nFlavor, GrullyI18nInitOptions, GrullyI18nLocalesDict, GrullyI18nOptions, GrullyI18nSessionData, GrullyI18nVars, GrullyMiddleware } from "./types"
 import { readdirSync } from "node:fs"
-import { join } from "node:path"
+import path, { join } from "node:path"
+
+const LANGUAGE_NAME_LENGTH = 2
 
 /** Factory function that creates the i18n middleware */
 export const i18n = <C extends GrullyI18nContext>(
@@ -12,21 +14,27 @@ export const i18n = <C extends GrullyI18nContext>(
         folder,
         plugin,
         needCache = true,
-        isDebug = false
+        isDebug = false,
+        separator = '/'
     } = options
 
     const {
+        init = () => {},
         render,
-        compile = options => vars => render({ ...options, vars }),
+        compile,
         extension
     } = plugin
 
+    const endFilename = '.' + extension
     const locales: GrullyI18nLocalesDict = {}
-    const compileOptions: Omit<GrullyI18nCompileOptions, 'path'> = {
+    const compileOptions: GrullyI18nInitOptions = {
         isDebug,
         needCache,
         rootFolder: folder
     }
+    const availableLanguages: string[] = []
+
+    init(compileOptions)
 
     if (needCache) {
         const langs = readdirSync(
@@ -41,9 +49,9 @@ export const i18n = <C extends GrullyI18nContext>(
             const startIdx = skipPathLength + 1
             const trimmed = fullPath.slice(startIdx)
             const lastDot = trimmed.lastIndexOf('.')
-            const key = lastDot !== -1 ? trimmed.slice(0, lastDot) : ''
+            const key = lastDot !== -1 ? trimmed.slice(0, lastDot) : trimmed
 
-            return key
+            return key.replaceAll(path.sep, separator)
         }
 
         for (const dir of langs) {
@@ -60,7 +68,7 @@ export const i18n = <C extends GrullyI18nContext>(
                     recursive: true
                 }
             )
-                .filter(v => v.isFile())
+                .filter(v => v.isFile() && v.name.endsWith(endFilename))
                 .map(v => {
                     const path = join(v.parentPath, v.name)
                     return path
@@ -76,10 +84,14 @@ export const i18n = <C extends GrullyI18nContext>(
 
                 locales[key][lang] = compile({
                     ...compileOptions,
-                    path: fullPath
+                    path: fullPath,
+                    key
                 })
             }
 
+            if(lang.length == LANGUAGE_NAME_LENGTH) {
+                availableLanguages.push(lang)
+            }
         }
     }
 
@@ -105,11 +117,13 @@ export const i18n = <C extends GrullyI18nContext>(
             }
 
             else {
-                const fullPath = join(folder, lang, `${key}.${extension}`)
+                const fullPath = join(folder, lang, key)
+                    .replaceAll(separator, path.sep) + endFilename
                 return render({
                     ...compileOptions,
                     vars,
-                    path: fullPath
+                    path: fullPath,
+                    key
                 })
             }
         }
@@ -119,6 +133,11 @@ export const i18n = <C extends GrullyI18nContext>(
             }
             return dummyText
         }
+    }
+
+    const i18n: GrullyI18nFlavor['i18n'] = {
+        locales,
+        availableLanguages
     }
 
     const middlewareFn: MiddlewareFn<C> = async (ctx, next) => {
@@ -136,7 +155,7 @@ export const i18n = <C extends GrullyI18nContext>(
 
         ctx.i18n = {
             ...ctx.i18n,
-            locales
+            ...i18n
         }
 
 
@@ -145,7 +164,7 @@ export const i18n = <C extends GrullyI18nContext>(
 
     const middlewareObj: GrullyMiddleware<C> = {
         middleware: () => middlewareFn,
-        locales
+        i18n
     }
 
     return middlewareObj

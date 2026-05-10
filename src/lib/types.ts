@@ -2,7 +2,7 @@ import type { Context, MiddlewareObj } from "grammy"
 
 /** Variables passed to a translation function */
 export type GrullyI18nVars = Record<string, any>
-/** Dictionary: translation key > locale > compiled function */
+/** Dictionary: translation key > language > compiled function */
 export type GrullyI18nLocalesDict = Record<string, Record<string, GrullyI18nCompileFunction>>
 
 export type GrullyI18nCompileOptions = {
@@ -10,6 +10,10 @@ export type GrullyI18nCompileOptions = {
      * Absolute path to the translation file
      */
     path: string
+    /**
+     * Translation file's key
+     */
+    key: string
     /**
      * Absolute path to root folder
      */
@@ -23,6 +27,7 @@ export type GrullyI18nRenderOptions = GrullyI18nCompileOptions & {
      */
     vars?: GrullyI18nVars
 }
+export type GrullyI18nInitOptions = Omit<GrullyI18nCompileOptions, 'path' | 'key'>
 
 export type GrullyI18nTranslateFunction = (key: string, vars?: GrullyI18nVars) => string
 export type GrullyI18nCompileFunction = (vars?: GrullyI18nVars) => string
@@ -33,6 +38,10 @@ export type GrullyI18nFlavor = {
     i18n: {
         /** Dictionary of all loaded locales */
         locales: GrullyI18nLocalesDict
+        /**
+         * Available languages (e.g. `["en", "ru", "es"]`)
+         */
+        availableLanguages: string[]
     }
 }
 
@@ -57,6 +66,7 @@ export type GrullyI18nOptions = {
      */
     plugin: GrullyI18nPlugin
     /**
+     * Use for production - true, for development - false
      * @default true
      */
     needCache?: boolean
@@ -64,14 +74,32 @@ export type GrullyI18nOptions = {
      * @default false
      */
     isDebug?: boolean
+    /**
+     * Key's separator
+     * @example 
+     * ```typescript
+        // separator = '/'
+        ctx.t('folder/key')
+        // separator = '.'
+        ctx.t('folder.key')
+     * ```
+     * @default '/'
+     */
+    separator?: string
 }
 
 /**
- * Plugin configuration for customizing how translation files are compiled and rendered. You can use `@grully/i18n-pug` or other
+ * Plugin configuration for customizing how translation files are compiled and rendered. 
+ * 
+ * You can use `@grully/i18n-pug` or other plugin
  */
 export type GrullyI18nPlugin = {
-    /** Optional compilation function – returns a function that can be called later with variables */
-    compile?: (options: GrullyI18nCompileOptions) => GrullyI18nCompileFunction
+    /**
+     * Optional initialization function, calls on bootstrap
+     */
+    init?: (options: GrullyI18nInitOptions) => void
+    /** Compilation function – returns a function that can be called later with variables */
+    compile: (options: GrullyI18nCompileOptions) => GrullyI18nCompileFunction
     /** Renders a template immediately (used when `needCache` is false or for fallback) */
     render: (options: GrullyI18nRenderOptions) => string
     /** File extension of translation files (e.g., "pug", "html") */
@@ -80,5 +108,5 @@ export type GrullyI18nPlugin = {
 
 export type GrullyMiddleware<C extends GrullyI18nContext> = MiddlewareObj<C> & {
     /** Dictionary of all loaded locales */
-    locales: GrullyI18nLocalesDict
+    i18n: GrullyI18nFlavor['i18n']
 }

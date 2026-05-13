@@ -42,6 +42,10 @@ export type GrullyI18nFlavor = {
          * Available languages (e.g. `["en", "ru", "es"]`)
          */
         availableLanguages: string[]
+        /**
+         * Current language code
+         */
+        languageCode: string
     }
 }
 
@@ -108,5 +112,5 @@ export type GrullyI18nPlugin = {
 
 export type GrullyMiddleware<C extends GrullyI18nContext> = MiddlewareObj<C> & {
     /** Dictionary of all loaded locales */
-    i18n: GrullyI18nFlavor['i18n']
+    i18n: Omit<GrullyI18nFlavor['i18n'], 'languageCode'>
 }

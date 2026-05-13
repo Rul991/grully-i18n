@@ -110,7 +110,8 @@ export const i18n = <C extends GrullyI18nContext>(
 
         try {
             if (needCache) {
-                const compileFunction = locales[key]?.[lang]
+                const compileFunction = locales[key]?.[lang] ??
+                    locales[key]?.[defaultLocale]
                 if (!compileFunction) return dummyText
 
                 return compileFunction(vars)
@@ -135,7 +136,7 @@ export const i18n = <C extends GrullyI18nContext>(
         }
     }
 
-    const i18n: GrullyI18nFlavor['i18n'] = {
+    const i18n: GrullyMiddleware<C>['i18n'] = {
         locales,
         availableLanguages
     }
@@ -155,7 +156,8 @@ export const i18n = <C extends GrullyI18nContext>(
 
         ctx.i18n = {
             ...ctx.i18n,
-            ...i18n
+            ...i18n,
+            languageCode
         }
 
 

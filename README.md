@@ -15,7 +15,7 @@ It provides a simple `ctx.t()` translation function, supports **file-based trans
 
 ## Installation
 
-```bash
+```sh
 npm install @grully/i18n
 ```
 
@@ -25,7 +25,7 @@ npm install @grully/i18n
 import { env } from "bun"
 import { Bot, session, type Context, type SessionFlavor } from "grammy"
 import i18n, { type GrullyI18nFlavor, type GrullyI18nSessionData } from '@grully/i18n'
-import i18nPug from '@grully/i18n-pug'
+import i18nPug from '@grully/i18n-pug' // or other plugin, like `@grully/i18n-nunjucks`
 
 type BotContext = Context & GrullyI18nFlavor & SessionFlavor<GrullyI18nSessionData>
 type MyBot = Bot<BotContext>
@@ -107,3 +107,8 @@ bot.start({
     }
 })
 ```
+
+## Official plugins
+
+- `Pug` - [@grully/i18n-pug](https://www.npmjs.com/package/@grully/i18n-pug)
+- `Nunjucks` - [@grully/i18n-nunjucks](https://www.npmjs.com/package/@grully/i18n-nunjucks)
